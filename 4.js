@@ -248,11 +248,108 @@ function passthru(literals, ...values) {
 }
 */
 
+// “标签模板”的一个重要应用，就是过滤 HTML 字符串，防止用户输入恶意内容。
+// 将用户输入的特殊字符转义
+/*
+let message =
+  SaferHTML`<p>${sender} has sent you a message.</p>`;
 
+function SaferHTML(templateData) {
+  let s = templateData[0];
+  for (let i = 1; i < arguments.length; i++) {
+    let arg = String(arguments[i]);
 
+    // Escape special characters in the substitution.
+    s += arg.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
 
+    // Don't escape special characters in the template.
+    s += templateData[i];
+  }
+  return s;
+}
 
+//message: <p>&lt;script&gt;alert("abc")&lt;/script&gt; has sent you a message.</p>
+*/
 
+// 标签模板的另一个应用，就是多语言转换（国际化处理）。
 
+/*
+// 下面的hashTemplate函数
+// 是一个自定义的模板处理函数
+let libraryHtml = hashTemplate`
+  <ul>
+    #for book in ${myBooks}
+      <li><i>#{book.title}</i> by #{book.author}</li>
+    #end
+  </ul>
+`;
+*/
 
+/*
+// 通过jsx函数，将一个 DOM 字符串转为 React 对象
+jsx`
+  <div>
+    <input
+      ref='input'
+      onChange='${this.handleChange}'
+      defaultValue='${this.state.value}' />
+      ${this.state.value}
+   </div>
+`
+*/
+
+console.log`123`;
+// ["123", row:Array[1]]
+
+tag`First line\nSecond line`;
+function tag(strings) {
+    console.log(strings[0]);
+    console.log(strings.raw[0]);
+    // strings.raw[0] 为 "First line\\nSecond line"
+    // 打印输出 "First line\nSecond line"
+}
+
+// ============================ String.raw() ============================
+
+// String.raw方法，往往用来充当模板字符串的处理函数，返回一个斜杠都被转义（即斜杠前面再加一个斜杠）的字符串，对应于替换变量后的模板字符串。
+/*
+String.raw`Hi\n${2+3}!`;
+// 返回 "Hi\\n5!"
+
+String.raw`Hi\u000A!`;
+// 返回 "Hi\\u000A!"
+*/
+
+// 如果原字符串的斜杠已经转义，那么String.raw会进行再次转义。
+/*
+String.raw`Hi\\n`
+// 返回 "Hi\\\\n"
+*/
+
+// 可以当做正常函数使用
+/*
+String.raw({ raw: 'test' }, 0, 1, 2);
+// 't0e1s2t'
+
+// 等同于
+String.raw({ raw: ['t','e','s','t'] }, 0, 1, 2);
+*/
+
+// 函数实现
+/*
+String.raw = function (strings, ...values) {
+  let output = '';
+  let index;
+  for (index = 0; index < values.length; index++) {
+    output += strings.raw[index] + values[index];
+  }
+
+  output += strings.raw[index]
+  return output;
+}
+*/
+
+// ============================ 模板字符串的限制 ============================
 
