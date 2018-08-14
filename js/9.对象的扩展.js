@@ -243,17 +243,259 @@
 // console.log(getOwnPropertyDescriptors(obj));
 
 // Object.assign() 无法正确拷贝get属性和set属性
-// Object.getOwnPropertyDescriptors方法配合Object.defineProperties方法，就可以实现正确拷贝。
-const source = {
-    set foo(value) {
-        console.log(value);
-    }
-};
+// const source = {
+//     set foo(value) {
+//         console.log(value);
+//     }
+// };
+//
+// const target1 = {};
+// Object.assign(target1, source);
+//
+// Object.getOwnPropertyDescriptor(target1, 'foo')
+// // { value: undefined,
+// //   writable: true,
+// //   enumerable: true,
+// //   configurable: true }
 
-const target2 = {};
-Object.defineProperties(target2, Object.getOwnPropertyDescriptors(source));
-Object.getOwnPropertyDescriptor(target2, 'foo')
-// { get: undefined,
-//   set: [Function: set foo],
-//   enumerable: true,
-//   configurable: true }
+// Object.getOwnPropertyDescriptors方法配合Object.defineProperties方法，就可以实现正确拷贝。
+// const source = {
+//     set foo(value) {
+//         console.log(value);
+//     }
+// };
+//
+// const target2 = {};
+// Object.defineProperties(target2, Object.getOwnPropertyDescriptors(source));
+// Object.getOwnPropertyDescriptor(target2, 'foo')
+// // { get: undefined,
+// //   set: [Function: set foo],
+// //   enumerable: true,
+// //   configurable: true }
+
+// 上面代码中，两个对象合并的逻辑可以写成一个函数。
+// const shallowMerge = (target, source) => Object.defineProperties(
+//     target,
+//     Object.getOwnPropertyDescriptors(source)
+// );
+
+// Object.getOwnPropertyDescriptors方法的另一个用处，是配合Object.create方法，将对象属性克隆到一个新对象。这属于浅拷贝。
+// const clone = Object.create(Object.getPrototypeOf(obj),
+//     Object.getOwnPropertyDescriptors(obj));
+//
+// // 或者
+//
+// const shallowClone = (obj) => Object.create(
+//     Object.getPrototypeOf(obj),
+//     Object.getOwnPropertyDescriptors(obj)
+// );
+
+// 以前 继承对象 __proto__
+// const obj = {
+//     __proto__: prot,
+//     foo: 123,
+// };
+
+// ES6 规定__proto__只有浏览器要部署，其他环境不用部署。
+// const obj = Object.create(prot);
+// obj.foo = 123;
+//
+// // 或者
+//
+// const obj = Object.assign(
+//     Object.create(prot),
+//     {
+//         foo: 123,
+//     }
+// );
+
+// const obj = Object.create(
+//     prot,
+//     Object.getOwnPropertyDescriptors({
+//         foo: 123,
+//     })
+// );
+
+// Mixin 混入模式
+// let mix = (object) => ({
+//     with: (...mixins) => mixins.reduce(
+//         (c, mixin) => Object.create(
+//             c, Object.getOwnPropertyDescriptors(mixin)
+//         ), object)
+// });
+//
+// // multiple mixins example
+// let a = {a: 'a'};
+// let b = {b: 'b'};
+// let c = {c: 'c'};
+// let d = mix(c).with(a, b);
+// console.log(d.a);
+// console.log(d.b);
+// console.log(d.c);
+
+// ============= __proto__属性，Object.setPrototypeOf()，Object.getPrototypeOf() ===============
+//__proto__属性,用来读取或设置当前对象的prototype对象。
+// es5 的写法
+// const obj = {
+//     method: function() {  }
+// };
+// obj.__proto__ = someOtherObj;
+//
+// // es6 的写法
+// var obj = Object.create(someOtherObj);
+// obj.method = function() {  };
+
+// Object.setPrototypeOf方法的作用与__proto__相同，用来设置一个对象的prototype对象，返回参数对象本身。
+// // 格式
+// Object.setPrototypeOf(object, prototype);
+//
+// // 用法
+// const o = Object.setPrototypeOf({}, null);
+//
+// // 等同于
+// function _(obj, proto) {
+//     obj.__proto__ = proto;
+//     return obj;
+// }
+
+// let proto = {};
+// let _obj = { x: 10 };
+// Object.setPrototypeOf(_obj, proto);
+//
+// proto.y = 20;
+// proto.z = 40;
+//
+// console.log(_obj);
+// console.log(_obj.__proto__);
+
+// 如果第一个参数不是对象，会自动转为对象。
+// Object.setPrototypeOf(1, {}) === 1 // true
+// Object.setPrototypeOf('foo', {}) === 'foo' // true
+// Object.setPrototypeOf(true, {}) === true // true
+
+// 由于undefined和null无法转为对象，所以如果第一个参数是undefined或null，就会报错。
+// Object.setPrototypeOf(undefined, {})
+// Object.setPrototypeOf(null, {})
+
+// Object.getPrototypeOf() 用于读取一个对象的原型对象。
+// console.log(Object.getPrototypeOf(_obj) === _obj.__proto__);
+
+// 如果参数不是对象，会自动转为对象。
+// // 等同于 Object.getPrototypeOf(Number(1))
+// Object.getPrototypeOf(1)
+// // Number {[[PrimitiveValue]]: 0}
+//
+// // 等同于 Object.getPrototypeOf(String('foo'))
+// Object.getPrototypeOf('foo')
+// // String {length: 0, [[PrimitiveValue]]: ""}
+//
+// // 等同于 Object.getPrototypeOf(Boolean(true))
+// Object.getPrototypeOf(true)
+// // Boolean {[[PrimitiveValue]]: false}
+//
+// Object.getPrototypeOf(1) === Number.prototype // true
+// Object.getPrototypeOf('foo') === String.prototype // true
+// Object.getPrototypeOf(true) === Boolean.prototype // true
+
+// 如果参数是undefined或null，它们无法转为对象，所以会报错。
+// Object.getPrototypeOf(null)
+// Object.getPrototypeOf(undefined)
+
+// ========================== super 关键字 ==============================
+// super 指向当前对象的原型对象。
+// const proto = {
+//     foo: 'hello'
+// };
+//
+// const obj = {
+//     foo: 'world',
+//     find() {
+//         return super.foo;
+//     }
+// };
+//
+// Object.setPrototypeOf(obj, proto);
+// obj.find() // "hello"
+
+// super 只能用在对象的方法之中，用在其他地方都会报错
+// JavaScript 引擎内部，super.foo等同于Object.getPrototypeOf(this).foo（属性）或Object.getPrototypeOf(this).foo.call(this)（方法）。
+// const proto = {
+//     x: 'hello',
+//     foo() {
+//         console.log(this.x);
+//     },
+// };
+//
+// const obj = {
+//     x: 'world',
+//     foo() {
+//         // 指向原型proto的foo方法，但是this绑定的还是当前对象obj
+//         super.foo();
+//     }
+// }
+//
+// Object.setPrototypeOf(obj, proto);
+// obj.foo() // "world"
+
+// ========================== Object.keys()，Object.values()，Object.entries() ===============================
+// Object.keys() 参数对象自身的（不含继承）所有可遍历的属性的键名
+// var obj = { foo: 'bar', baz: 42 };
+// Object.keys(obj) // ["foo", "baz"]
+
+// Object.values() 参数对象自身的（不含继承）所有可遍历的属性的键值
+// const obj = { foo: 'bar', baz: 42 };
+// Object.values(obj) // ["bar", 42]
+
+// 返回的成员顺序
+// const obj = { 100: 'a', 2: 'b', 7: 'c' };
+// Object.values(obj) // ["b", "c", "a"]
+
+// p不是可遍历的 p的描述对象的enumerable默认为false
+// const obj = Object.create({}, {p: {value: 42}});
+// Object.values(obj); // []
+
+// 增加enumerable属性为true
+// const obj = Object.create({}, {p:
+//     {
+//         value: 42,
+//         enumerable: true
+//     }
+// });
+// Object.values(obj); // [42]
+
+// Object.values会过滤属性名为 Symbol 值的属性。
+// Object.values({ [Symbol()]: 123, foo: 'abc' }); // ['abc']
+
+// 如果Object.values方法的参数是一个字符串，会返回各个字符组成的一个数组。
+// Object.values('foo'); // ['f', 'o', 'o']
+
+// 如果参数不是对象，Object.values会先将其转为对象。
+// Object.values(42) // []
+// Object.values(true) // []
+
+// Object.entries 参数对象自身的（不含继承）所有可遍历的属性的键值对
+// const obj = { foo: 'bar', baz: 42 };
+// Object.entries(obj) // [ ["foo", "bar"], ["baz", 42] ]
+
+// Object.entries方法的另一个用处是，将对象转为真正的Map结构。
+// const obj = { foo: 'bar', baz: 42 };
+// const map = new Map(Object.entries(obj));
+// console.log(map); // Map { foo: "bar", baz: 42 }
+
+// ========================== 对象的扩展运算符 ===============================
+// ...
+
+// ============================== 解构赋值 ==================================
+// 解构赋值要求等号右边是一个对象，所以如果等号右边是undefined或null，就会报错
+// 解构赋值必须是最后一个参数，否则会报错。
+// 解构赋值的拷贝是浅拷贝
+// 扩展运算符的解构赋值，不能复制继承自原型对象的属性。
+// 扩展某个函数的参数，引入其他操作。
+// function baseFunction({ a, b }) {
+//     // ...
+// }
+// function wrapperFunction({ x, y, ...restConfig }) {
+//     // 使用 x 和 y 参数进行操作
+//     // 其余参数传给原始函数
+//     return baseFunction(restConfig);
+// }
